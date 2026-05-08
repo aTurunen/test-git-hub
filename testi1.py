@@ -1,0 +1,1 @@
+print("moro maailma")
