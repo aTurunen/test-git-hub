@@ -5,6 +5,8 @@ from typing import Callable, List, Optional
 
 Condition = Callable[['Step', Optional['Step']], bool]
 
+import time
+import keyboard
 
 @dataclass
 class Step:
@@ -108,32 +110,93 @@ class Sequence:
         return f"Sequence(index={self.current_index}, step={self.current_step.name}, percent={self.percentage_complete}%)"
 
 
+class Testisovellus:
+    def __init__(self) -> None:
+        self.sequence = Sequence(
+            steps=[
+                Step(name='Initialize', comment='Alkuvalmistelut'),
+                Step(name='eka', comment='Eka vaihe'),
+                Step(name='toka', comment='Toinen vaihe'),
+                Step(name='kolmas', comment='Kolmas vaihe'),
+                Step(name='Finalize', comment='Viimeinen vaihe'),
+            ],
+            auto_forward_condition=lambda current, next_step: current.name == 'Initialize',
+            auto_backward_condition=lambda current, previous_step: current.name == 'Process'
+        )
+    def ohje(self):
+        print('komennot:')
+        print('0 lopetus')
+        print('1 eteenpäin')
+        print('2 taaksepäin')
+
+    def suorita(self):
+        self.ohje()
+        while True:
+            print("")
+            komento = input("komento: ")
+            if komento == "0":
+                break
+            elif komento == "1":
+                moved = self.sequence.next()
+                print('Moved forward:', moved, self.sequence)
+            elif komento == "2":
+                moved = self.sequence.previous()
+                print('Moved backward:', moved, self.sequence)
+            else:
+                self.ohje()
+
+
+class sekvenssi1:
+    def __init__(self):
+        self.sequence = Sequence(
+            steps=[
+                Step(name='Initialize', comment='Alkuvalmistelut'),
+                Step(name='eka', comment='Eka vaihe'),
+                Step(name='toka', comment='Toinen vaihe'),
+                Step(name='kolmas', comment='Kolmas vaihe'),
+                Step(name='Finalize', comment='Viimeinen vaihe'),
+            ],
+            auto_forward_condition=lambda current, next_step: current.name == 'Initialize',
+            auto_backward_condition=lambda current, previous_step: current.name == 'Process'
+        )
+
+
+
+    # Process key press events: 1 for forward, 2 for backward, return True if ESC pressed.
+    def key_event(self) -> bool:
+        if keyboard.is_pressed('1'):
+            moved = self.sequence.next()
+            print('Moved forward:', moved, self.sequence)
+            time.sleep(0.3)
+        elif keyboard.is_pressed('2'):
+            moved = self.sequence.previous()
+            print('Moved backward:', moved, self.sequence)
+            time.sleep(0.3)
+        elif keyboard.is_pressed('esc'):
+            return True
+        return False
+
+    def run(self):
+        print('Sequence Control Running')
+        print('Press 1 for next, 2 for previous, ESC to exit')
+        while True:
+            print('')
+            print(self.sequence)
+            
+            # Check for key presses over 1 second interval
+            start_time = time.time()
+            while time.time() - start_time < 1.0:
+                if self.key_event():
+                    print('Program terminated.')
+                    return
+                time.sleep(0.05)
+
+
+
+
+
+
 if __name__ == '__main__':
-    steps = [
-        Step(name='Initialize', comment='Prepare all resources'),
-        Step(name='LoadData', comment='Load input data from disk'),
-        Step(name='Process', comment='Execute processing logic'),
-        Step(name='Finalize', comment='Clean up and finish'),
-    ]
 
-    # Condition to automatically move forward from one step to the next.
-    def forward_condition(current: Step, next_step: Optional[Step]) -> bool:
-        return current.name == 'Initialize'
-
-    # Condition to automatically move backward from one step to the previous.
-    def backward_condition(current: Step, previous_step: Optional[Step]) -> bool:
-        return current.name == 'Process'
-
-    sequence = Sequence(
-        steps,
-        auto_forward_condition=forward_condition,
-        auto_backward_condition=backward_condition,
-    )
-
-    print(sequence)
-    moved = sequence.next()
-    print('Moved forward:', moved, sequence)
-    moved = sequence.previous()
-    print('Moved backward:', moved, sequence)
-    sequence.update()
-    print('After update:', sequence)
+    app = sekvenssi1()
+    app.run()
